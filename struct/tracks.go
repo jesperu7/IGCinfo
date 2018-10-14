@@ -25,7 +25,6 @@ type URL struct {
 }
 
 
-var Tracks map[int]Track
 var IDs []string
 var Db TrackDB
 var LastUsed int
