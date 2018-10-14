@@ -8,7 +8,9 @@ import (
 	"strconv"
 	"strings"
 	"github.com/marni/goigc"
-	"github.com/Jesperu7/IGCinfo/struct"
+	//"github.com/Jesperu7/IGCinfo/struct"
+	"../../../../src/github.com/marni/goigc"
+	"../struct"
 
 )
 
@@ -129,7 +131,7 @@ func HandlerIgc(w http.ResponseWriter, r *http.Request){
 			} else {
 				http.Error(w, http.StatusText(404), 404)
 			}
-		} else if (parts[5] == "" && len(parts) == 6) || len(parts) == 5 && checkId(parts[4]) {
+		} else if (parts[5] == "" && len(parts) == 6) || len(parts) == 5 {
 			/*idExists := false
 			for i := 0; i < len(IDs); i++ {
 				if IDs[i] == strings.ToUpper(parts[4]) {
@@ -137,15 +139,18 @@ func HandlerIgc(w http.ResponseWriter, r *http.Request){
 					break
 				}
 			}*/
-			checkId(parts[4])
 			if !checkId(parts[4])/*!idExists*/ {
 				http.Error(w, "ID out of range.", http.StatusNotFound)
 				return
 			} else {
 				replyWithTracksId(w, _struct.Db, parts[4])
 			}
-		} else if (parts[6] == "" && len(parts) == 7) || len(parts) == 6 && checkId(parts[4]) {
-			replyWithField(w, _struct.Db, parts[4], parts[5])
+		} else if (parts[6] == "" && len(parts) == 7) || len(parts) == 6 {
+			if checkId(parts[4]) {
+				replyWithField(w, _struct.Db, parts[4], parts[5])
+			} else {
+				http.Error(w, "Not a valid request", http.StatusBadRequest)
+			}
 		} else {
 			http.Error(w, "Not a valid request", http.StatusBadRequest)
 		}

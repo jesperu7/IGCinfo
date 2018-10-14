@@ -1,8 +1,8 @@
 package main
 
 import (
+	"IGCinfo/handler"
 	"net/http"
-	"github.com/Jesperu7/IGCinfo/handler"
 )
 
 
