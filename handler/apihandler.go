@@ -72,39 +72,45 @@ func replyWithField(w http.ResponseWriter, db _struct.TrackDB, id string, field 
 func HandlerIgc(w http.ResponseWriter, r *http.Request){
 	switch r.Method{
 	case "POST":
-		if r.Body == nil {
-			http.Error(w, "Missing body", http.StatusBadRequest)
+		parts := strings.Split(r.URL.Path, "/")
+		if (len(parts) == 6 && parts[5] == "") || len(parts) == 5 {
+			if r.Body == nil {
+				http.Error(w, "Missing body", http.StatusBadRequest)
+				return
+			}
+			var u _struct.URL
+			err := json.NewDecoder(r.Body).Decode(&u)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			if checkURL(u.URL) == false {
+				http.Error(w, "invalid url", http.StatusBadRequest)
+				return
+			}
+			track, err := igc.ParseLocation(u.URL)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			totalDistance := _struct.CalculatedDistance(track)
+			var i _struct.ID
+			i.ID = ("ID" + strconv.Itoa(_struct.LastUsed))
+			t := _struct.Track{track.Header.Date,
+				track.Pilot,
+				track.GliderType,
+				track.GliderID,
+				totalDistance}
+			_struct.LastUsed++
+			if _struct.Tracks == nil {
+				_struct.Db.Init()
+			}
+			_struct.Db.Add(t, i)
 			return
-		}
-		var u _struct.URL
-		err := json.NewDecoder(r.Body).Decode(&u)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		if checkURL(u.URL) == false {
+		} else {
 			http.Error(w, "invalid url", http.StatusBadRequest)
-			return
+
 		}
-		track, err := igc.ParseLocation(u.URL)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		totalDistance := _struct.CalculatedDistance(track)
-		var i _struct.ID
-		i.ID = ("ID" + strconv.Itoa(_struct.LastUsed))
-		t := _struct.Track{track.Header.Date,
-			track.Pilot,
-			track.GliderType,
-			track.GliderID,
-			totalDistance}
-		_struct.LastUsed++
-		if _struct.Tracks == nil {
-			_struct.Db.Init()
-		}
-		_struct.Db.Add(t, i)
-		return
 	case "GET":
 		/*if len(IDs) == 0 {
 			IDs = make([]string, 0)
@@ -152,7 +158,7 @@ func HandlerIgc(w http.ResponseWriter, r *http.Request){
 func HandlerApi(w http.ResponseWriter, r *http.Request){
 	http.Header.Add(w.Header(), "content-type", "application/json")
 	parts := strings.Split(r.URL.Path, "/")
-	if parts[2] == "api" && parts[3] == "" {
+	if len(parts) == 4 && parts[3] == "" {
 		api := _struct.Information{_struct.Uptime(), _struct.Description, _struct.Version}
 		json.NewEncoder(w).Encode(api)
 	} else {
