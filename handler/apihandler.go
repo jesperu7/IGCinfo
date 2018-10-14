@@ -2,16 +2,12 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
+	"github.com/Jesperu7/IGCinfo/struct"
+	"github.com/marni/goigc"
 	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
-	"github.com/marni/goigc"
-	//"github.com/Jesperu7/IGCinfo/struct"
-	"../../../../src/github.com/marni/goigc"
-	"../struct"
-
 )
 
 func checkId(id string) bool {
@@ -48,19 +44,20 @@ func replyWithTracksId(w http.ResponseWriter, db _struct.TrackDB, id string) {
 }
 
 func replyWithField(w http.ResponseWriter, db _struct.TrackDB, id string, field string) {
+	http.Header.Set(w.Header(), "content.type", "application/json")
 	t, _ := db.Get(strings.ToUpper(id))
 
 	switch strings.ToUpper(field) {
 	case "PILOT":
-		fmt.Fprint(w, t.Pilot)
+		json.NewEncoder(w).Encode(t.Pilot)
 	case "GLIDER":
-		fmt.Fprint(w, t.Glider)
+		json.NewEncoder(w).Encode(t.Glider)
 	case "GLIDER_ID":
-		fmt.Fprint(w, t.GliderId)
+		json.NewEncoder(w).Encode(t.GliderId)
 	case "TRACK_LENGTH":
-		fmt.Fprint(w, t.TrackLength)
+		json.NewEncoder(w).Encode(t.TrackLength)
 	case "H_DATE":
-		fmt.Fprint(w, t.HeaderDate)
+		json.NewEncoder(w).Encode(t.HeaderDate)
 	default:
 		http.Error(w, "Not a valid option", http.StatusNotFound)
 		return
