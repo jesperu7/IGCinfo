@@ -1,4 +1,4 @@
-package main
+package _struct
 
 import "time"
 
@@ -20,7 +20,7 @@ func init(){
 	startTime = time.Now()
 }
 
-func uptime() string {
+func Uptime() string {
 	now := time.Now()
 	now.Format(time.RFC3339)
 	startTime.Format(time.RFC3339)

@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"encoding/json"
@@ -7,14 +7,15 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"github.com/marni/goigc"
+	"github.com/Jesperu7/IGCinfo/struct"
 
-	"../../../src/github.com/marni/goigc"
 )
 
 func checkId(id string) bool {
 	idExists := false
-	for i := 0; i < len(IDs); i++ {
-		if IDs[i] == strings.ToUpper(id) {
+	for i := 0; i < len(_struct.IDs); i++ {
+		if _struct.IDs[i] == strings.ToUpper(id) {
 			idExists = true
 			break
 		}
@@ -34,21 +35,21 @@ func checkURL(u string) bool {
 	return false
 }
 
-func replyWithAllTracksId(w http.ResponseWriter, db TrackDB) {
-	if len(IDs) == 0 {
-		IDs = make([]string, 0)
+func replyWithAllTracksId(w http.ResponseWriter, db _struct.TrackDB) {
+	if len(_struct.IDs) == 0 {
+		_struct.IDs = make([]string, 0)
 	}
-	json.NewEncoder(w).Encode(IDs)
+	json.NewEncoder(w).Encode(_struct.IDs)
 	return
 }
 
-func replyWithTracksId(w http.ResponseWriter, db TrackDB, id string) {
+func replyWithTracksId(w http.ResponseWriter, db _struct.TrackDB, id string) {
 	t, _ := db.Get(strings.ToUpper(id))
 	http.Header.Set(w.Header(), "content.type", "application/json")
 	json.NewEncoder(w).Encode(t)
 }
 
-func replyWithField(w http.ResponseWriter, db TrackDB, id string, field string) {
+func replyWithField(w http.ResponseWriter, db _struct.TrackDB, id string, field string) {
 	t, _ := db.Get(strings.ToUpper(id))
 
 	switch strings.ToUpper(field) {
@@ -68,14 +69,14 @@ func replyWithField(w http.ResponseWriter, db TrackDB, id string, field string) 
 	}
 }
 
-func handlerIgc(w http.ResponseWriter, r *http.Request){
+func HandlerIgc(w http.ResponseWriter, r *http.Request){
 	switch r.Method{
 	case "POST":
 		if r.Body == nil {
 			http.Error(w, "Missing body", http.StatusBadRequest)
 			return
 		}
-		var u URL
+		var u _struct.URL
 		err := json.NewDecoder(r.Body).Decode(&u)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -90,19 +91,19 @@ func handlerIgc(w http.ResponseWriter, r *http.Request){
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		totalDistance := CalculatedDistance(track)
-		var i ID
-		i.ID = ("ID" + strconv.Itoa(lastUsed))
-		t := Track{track.Header.Date,
+		totalDistance := _struct.CalculatedDistance(track)
+		var i _struct.ID
+		i.ID = ("ID" + strconv.Itoa(_struct.LastUsed))
+		t := _struct.Track{track.Header.Date,
 			track.Pilot,
 			track.GliderType,
 			track.GliderID,
 			totalDistance}
-		lastUsed++
-		if db.tracks == nil {
-			db.Init()
+		_struct.LastUsed++
+		if _struct.Tracks == nil {
+			_struct.Db.Init()
 		}
-		db.Add(t, i)
+		_struct.Db.Add(t, i)
 		return
 	case "GET":
 		/*if len(IDs) == 0 {
@@ -118,7 +119,7 @@ func handlerIgc(w http.ResponseWriter, r *http.Request){
 
 		if len(parts) == 5 {
 			if parts[4] == ""{
-				replyWithAllTracksId(w, db)
+				replyWithAllTracksId(w, _struct.Db)
 			} else {
 				http.Error(w, http.StatusText(404), 404)
 			}
@@ -135,10 +136,10 @@ func handlerIgc(w http.ResponseWriter, r *http.Request){
 				http.Error(w, "ID out of range.", http.StatusNotFound)
 				return
 			} else {
-				replyWithTracksId(w, db, parts[4])
+				replyWithTracksId(w, _struct.Db, parts[4])
 			}
 		} else if (parts[6] == "" && len(parts) == 7) || len(parts) == 6 && checkId(parts[4]) {
-			replyWithField(w, db, parts[4], parts[5])
+			replyWithField(w, _struct.Db, parts[4], parts[5])
 		} else {
 			http.Error(w, "Not a valid request", http.StatusBadRequest)
 		}
@@ -148,11 +149,11 @@ func handlerIgc(w http.ResponseWriter, r *http.Request){
 	}
 }
 
-func handlerApi(w http.ResponseWriter, r *http.Request){
+func HandlerApi(w http.ResponseWriter, r *http.Request){
 	http.Header.Add(w.Header(), "content-type", "application/json")
 	parts := strings.Split(r.URL.Path, "/")
 	if parts[2] == "api" && parts[3] == "" {
-		api := Information{uptime(), Description, Version}
+		api := _struct.Information{_struct.Uptime(), _struct.Description, _struct.Version}
 		json.NewEncoder(w).Encode(api)
 	} else {
 		http.Error(w, http.StatusText(404), 404)

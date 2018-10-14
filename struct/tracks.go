@@ -1,6 +1,7 @@
-package main
+package _struct
 
 import ("time"
+		"github.com/marni/goigc"
 )
 
 type Track struct {
@@ -24,10 +25,10 @@ type URL struct {
 }
 
 
-var tracks map[int]Track
+var Tracks map[int]Track
 var IDs []string
-var db TrackDB
-var lastUsed int
+var Db TrackDB
+var LastUsed int
 
 
 
