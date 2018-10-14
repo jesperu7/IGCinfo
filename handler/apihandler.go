@@ -22,11 +22,7 @@ func checkId(id string) bool {
 			break
 		}
 	}
-	if idExists == true {
-		return true
-	} else {
-		return false
-	}
+	return idExists
 }
 
 func checkURL(u string) bool {
@@ -122,24 +118,52 @@ func HandlerIgc(w http.ResponseWriter, r *http.Request){
 
 		parts := strings.Split(r.URL.Path, "/")
 
+		switch len(parts) {
+		case 5:
+			if parts[4] == ""{
+				replyWithAllTracksId(w, _struct.Db)
+			} else if checkId(parts[4]){
+				replyWithTracksId(w, _struct.Db, parts[4])
+			} else {
+				http.Error(w, http.StatusText(404), 404)
+			}
+		case 6:
+			if parts[5] == "" {
+				if !checkId(parts[4])/*!idExists*/ {
+					http.Error(w, "ID out of range.", http.StatusNotFound)
+					return
+				} else {
+					replyWithTracksId(w, _struct.Db, parts[4])
+				}
+			} else {
+				if checkId(parts[4]) {
+					replyWithField(w, _struct.Db, parts[4], parts[5])
+				} else {
+					http.Error(w, "Not a valid request", http.StatusBadRequest)
+				}
+			}
+		case 7:
+			if parts[6] == "" {
+				if checkId(parts[4]) {
+					replyWithField(w, _struct.Db, parts[4], parts[5])
+				} else {
+					http.Error(w, "Not a valid request", http.StatusBadRequest)
+				}
+			} else {
+				http.Error(w, "Not a valid request", http.StatusBadRequest)
+			}
+		}
 
 
-
-		if len(parts) == 5 {
+		/*if len(parts) == 5 {
 			if parts[4] == ""{
 				replyWithAllTracksId(w, _struct.Db)
 			} else {
 				http.Error(w, http.StatusText(404), 404)
 			}
 		} else if (parts[5] == "" && len(parts) == 6) || len(parts) == 5 {
-			/*idExists := false
-			for i := 0; i < len(IDs); i++ {
-				if IDs[i] == strings.ToUpper(parts[4]) {
-					idExists = true
-					break
-				}
-			}*/
-			if !checkId(parts[4])/*!idExists*/ {
+
+			if !checkId(parts[4]) {
 				http.Error(w, "ID out of range.", http.StatusNotFound)
 				return
 			} else {
@@ -156,7 +180,7 @@ func HandlerIgc(w http.ResponseWriter, r *http.Request){
 		}
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
+		return*/
 	}
 }
 
